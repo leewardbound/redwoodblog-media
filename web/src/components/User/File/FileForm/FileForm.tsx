@@ -28,21 +28,24 @@ const FileForm = (props) => {
           listClassName="rw-form-error-list"
         />
 
-        <Label
-          name="storage"
-          className="rw-label"
-          errorClassName="rw-label rw-label-error"
-        >
-          Storage
-        </Label>
-        <TextField
-          name="storage"
-          defaultValue={props.file?.storage}
-          className="rw-input"
-          errorClassName="rw-input rw-input-error"
-          validation={{ required: true }}
-        />
-        <FieldError name="storage" className="rw-field-error" />
+        {props.file?.storage ? null : (
+          <>
+            <Label
+              name="storage"
+              className="rw-label"
+              errorClassName="rw-label rw-label-error"
+            >
+              Storage
+            </Label>
+            <TextField
+              name="storage"
+              className="rw-input"
+              errorClassName="rw-input rw-input-error"
+              validation={{ required: true }}
+            />
+            <FieldError name="storage" className="rw-field-error" />
+          </>
+        )}
 
         <Label
           name="path"
@@ -77,26 +80,21 @@ const FileForm = (props) => {
         <FieldError name="title" className="rw-field-error" />
 
         <Label
-          name="owner_id"
+          name="title"
           className="rw-label"
           errorClassName="rw-label rw-label-error"
         >
-          Owner id
+          From URL
         </Label>
         <TextField
-          name="owner_id"
-          defaultValue={props.file?.owner_id}
+          name="from_url"
           className="rw-input"
           errorClassName="rw-input rw-input-error"
-          validation={{ required: true }}
         />
-        <FieldError name="owner_id" className="rw-field-error" />
+        <FieldError name="from_url" className="rw-field-error" />
 
         <div className="rw-button-group">
-          <Submit
-            disabled={props.loading}
-            className="rw-button rw-button-blue"
-          >
+          <Submit disabled={props.loading} className="rw-button rw-button-blue">
             Save
           </Submit>
         </div>

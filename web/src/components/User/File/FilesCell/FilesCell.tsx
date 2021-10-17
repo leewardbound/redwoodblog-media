@@ -14,6 +14,7 @@ export const QUERY = gql`
       path
       title
       owner_id
+      publicURL
     }
   }
 `
@@ -24,10 +25,7 @@ export const Empty = () => {
   return (
     <div className="rw-text-center">
       {'No files yet. '}
-      <Link
-        to={routes.userNewFile()}
-        className="rw-link"
-      >
+      <Link to={routes.userNewFile()} className="rw-link">
         {'Create one?'}
       </Link>
     </div>

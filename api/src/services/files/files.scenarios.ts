@@ -4,7 +4,7 @@ export const standard = defineScenario<Prisma.FileCreateArgs>({
   file: {
     one: {
       data: {
-        storage: 'String',
+        storage: 'fake',
         path: 'String',
         owner: {
           create: {
@@ -17,7 +17,7 @@ export const standard = defineScenario<Prisma.FileCreateArgs>({
     },
     two: {
       data: {
-        storage: 'String',
+        storage: 'fake',
         path: 'String',
         owner: {
           create: {

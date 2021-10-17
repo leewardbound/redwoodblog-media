@@ -1,7 +1,7 @@
 import type { Prisma } from '@prisma/client'
 
-import { db } from 'api/src/lib/db'
-import { requireAuth } from 'api/src/lib/auth'
+import { db } from 'src/lib/db'
+import { requireAuth } from 'src/lib/auth'
 import { ValidationError } from '@redwoodjs/graphql-server'
 
 export const posts = () => {

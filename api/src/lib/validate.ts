@@ -6,7 +6,7 @@ async function validateFields<InputType>(
   rulesModule: ValidatorRulesModule,
   data: InputType
 ): Promise<InputType> {
-  for (const field in Object.keys(data)) {
+  for (const field of Object.keys(data)) {
     if (Object.keys(rulesModule).includes(field)) {
       data[field] = await Promise.resolve(rulesModule[field](data[field]))
     }
@@ -40,7 +40,7 @@ export async function validateUpdate<InputType, ExistingType>(
 
   /* First we run the root validator */
   if (Object.keys(rulesModule).includes('root')) {
-    data = await Promise.resolve(rulesModule.root(data))
+    data = await Promise.resolve(rulesModule.root(data, existing))
   }
 
   /* Finally we run the update validator */

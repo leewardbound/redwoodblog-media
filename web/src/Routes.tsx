@@ -15,12 +15,6 @@ import BlogLayout from 'src/layouts/BlogLayout/BlogLayout'
 const Routes = () => {
   return (
     <Router>
-      <Set wrap={FilesLayout}>
-        <Route path="/user/files/new" page={UserFileNewFilePage} name="userNewFile" />
-        <Route path="/user/files/{id}/edit" page={UserFileEditFilePage} name="userEditFile" />
-        <Route path="/user/files/{id}" page={UserFileFilePage} name="userFile" />
-        <Route path="/user/files" page={UserFileFilesPage} name="userFiles" />
-      </Set>
       <Route path="/login" page={LoginPage} name="login" />
       <Route path="/signup" page={SignupPage} name="signup" />
       <Private unauthenticated="home">
@@ -29,6 +23,12 @@ const Routes = () => {
           <Route path="/user/posts/{id:Int}/edit" page={UserPostEditPostPage} name="userEditPost" />
           <Route path="/user/posts/{id:Int}" page={UserPostPostPage} name="userPost" />
           <Route path="/user/posts" page={UserPostPostsPage} name="userPosts" />
+        </Set>
+        <Set wrap={FilesLayout}>
+          <Route path="/user/files/new" page={UserFileNewFilePage} name="userNewFile" />
+          <Route path="/user/files/{id}/edit" page={UserFileEditFilePage} name="userEditFile" />
+          <Route path="/user/files/{id}" page={UserFileFilePage} name="userFile" />
+          <Route path="/user/files" page={UserFileFilesPage} name="userFiles" />
         </Set>
       </Private>
       <Route path="/contact" page={ContactPage} name="contact" />

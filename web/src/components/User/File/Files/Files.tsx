@@ -70,6 +70,7 @@ const FilesList = ({ files }) => {
             <th>Path</th>
             <th>Title</th>
             <th>Owner id</th>
+            <th>Public URL</th>
             <th>&nbsp;</th>
           </tr>
         </thead>
@@ -82,6 +83,11 @@ const FilesList = ({ files }) => {
               <td>{truncate(file.path)}</td>
               <td>{truncate(file.title)}</td>
               <td>{truncate(file.owner_id)}</td>
+              <td>
+                <img src={file.publicURL} />
+                <br />
+                <a href={file.publicURL}>{truncate(file.publicURL)}</a>
+              </td>
               <td>
                 <nav className="rw-table-actions">
                   <Link

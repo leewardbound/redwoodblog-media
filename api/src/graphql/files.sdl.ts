@@ -31,7 +31,6 @@ export const schema = gql`
   }
 
   input UpdateFileInput {
-    storage: String
     path: String
     title: String
     from_url: String
