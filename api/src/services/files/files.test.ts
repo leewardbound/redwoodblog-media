@@ -92,4 +92,23 @@ describe('files-minio', () => {
       expect(result.publicURL).toEqual(null)
     }
   )
+  scenario(
+    'creates a minio file from http url',
+    async (scenario: StandardScenario) => {
+      mockCurrentUser({ id: scenario.file.one.owner_id })
+
+      const result = await createFile({
+        input: {
+          storage: 'test',
+          path: 'test-150.png',
+          from_url: 'https://via.placeholder.com/150',
+        },
+      })
+
+      expect(result.owner_id).toEqual(scenario.file.one.owner_id)
+      expect(result.path).toEqual('test-150.png')
+      expect(result.extension).toEqual('png')
+      expect(result.publicURL).toEqual(null)
+    }
+  )
 })

@@ -69,8 +69,4 @@ export const getFileUploadURL = async ({ storage }: GetFileUploadURLArgs) => {
 export const File = {
   owner: (_obj, { root }: ResolverArgs<ReturnType<typeof file>>) =>
     db.file.findUnique({ where: { id: root.id } }).owner(),
-  publicURL: (_obj, { root }): string | null => {
-    const storage = getStorage(root.storage)
-    return storage?.getPublicFileURL(root.path)
-  },
 }
