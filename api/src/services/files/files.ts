@@ -5,6 +5,8 @@ import { db } from 'src/lib/db'
 
 import * as rules from './files.validate'
 import { validateUpdate, validateCreate } from 'src/lib/validate'
+import { getStorage } from 'src/lib/storage'
+import { ValidationError } from '@redwoodjs/graphql-server'
 
 export const files = () => {
   return db.file.findMany()
@@ -20,9 +22,9 @@ interface CreateFileArgs {
   input: Prisma.FileCreateInput
 }
 
-export const createFile = ({ input }: CreateFileArgs) => {
-  return db.file.create({
-    data: { ...validateCreate<Prisma.FileCreateInput>(rules, input) },
+export const createFile = async ({ input }: CreateFileArgs) => {
+  return await db.file.create({
+    data: { ...(await validateCreate<Prisma.FileCreateInput>(rules, input)) },
   })
 }
 
@@ -36,7 +38,7 @@ export const updateFile = async ({ id, input }: UpdateFileArgs) => {
   })
   return await db.file.update({
     data: {
-      ...validateUpdate<Prisma.FileUpdateInput>(rules, input, existing),
+      ...(await validateUpdate<Prisma.FileUpdateInput>(rules, input, existing)),
     },
     where: { id },
   })
@@ -46,6 +48,18 @@ export const deleteFile = ({ id }: Prisma.FileWhereUniqueInput) => {
   return db.file.delete({
     where: { id },
   })
+}
+
+interface GetFileUploadURLArgs {
+  storage: string
+}
+
+export const getFileUploadURL = async ({ storage }: GetFileUploadURLArgs) => {
+  const uploads = getStorage(storage)
+  if (!uploads) throw new ValidationError(`No such destination: ${storage}`)
+
+  const tempName = `.uploads/${new Date().toISOString()}`
+  return await uploads.client.presignedPutObject(uploads.bucket, tempName)
 }
 
 export const File = {

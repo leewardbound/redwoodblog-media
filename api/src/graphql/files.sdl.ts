@@ -14,6 +14,7 @@ export const schema = gql`
   type Query {
     files: [File!]! @requireAuth
     file(id: String!): File @requireAuth
+    getFileUploadURL(storage: String!): String @requireAuth
   }
 
   input CreateFileInput {

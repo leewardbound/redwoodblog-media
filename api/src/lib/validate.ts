@@ -2,50 +2,50 @@ export type ValidatorRulesModule = {
   [key: string]: (value: any, existing?: any) => any
 }
 
-export function validateFields<T>(
+async function validateFields<InputType>(
   rulesModule: ValidatorRulesModule,
-  data: T
-): T {
-  Object.keys(data).map((field) => {
+  data: InputType
+): Promise<InputType> {
+  for (const field in Object.keys(data)) {
     if (Object.keys(rulesModule).includes(field)) {
-      data[field] = rulesModule[field](data[field])
+      data[field] = await Promise.resolve(rulesModule[field](data[field]))
     }
-  })
+  }
   return data
 }
 
-export function validateCreate<T>(
+export async function validateCreate<InputType>(
   rulesModule: ValidatorRulesModule,
-  data: T
-): T {
-  data = validateFields<T>(rulesModule, data)
+  data: InputType
+): Promise<InputType> {
+  data = await validateFields<InputType>(rulesModule, data)
 
   /* First we run the root validator */
   if (Object.keys(rulesModule).includes('root')) {
-    data = rulesModule.root(data)
+    data = await Promise.resolve(rulesModule.root(data))
   }
 
   /* Finally we run the creation validator */
   if (Object.keys(rulesModule).includes('create')) {
-    data = rulesModule.create(data)
+    data = await Promise.resolve(rulesModule.create(data))
   }
   return data
 }
-export function validateUpdate<T>(
+export async function validateUpdate<InputType>(
   rulesModule: ValidatorRulesModule,
-  data: T,
+  data: InputType,
   existing: { [key: string]: any }
-): T {
-  data = validateFields<T>(rulesModule, data)
+): Promise<InputType> {
+  data = await validateFields<InputType>(rulesModule, data)
 
   /* First we run the root validator */
   if (Object.keys(rulesModule).includes('root')) {
-    data = rulesModule.root(data)
+    data = await Promise.resolve(rulesModule.root(data))
   }
 
   /* Finally we run the update validator */
   if (Object.keys(rulesModule).includes('update')) {
-    data = rulesModule.update(data, existing)
+    data = await Promise.resolve(rulesModule.update(data, existing))
   }
   return data
 }

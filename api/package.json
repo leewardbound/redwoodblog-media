@@ -4,6 +4,10 @@
   "private": true,
   "dependencies": {
     "@redwoodjs/api": "0.37.4",
-    "@redwoodjs/graphql-server": "0.37.4"
+    "@redwoodjs/graphql-server": "0.37.4",
+    "minio": "^7.0.19"
+  },
+  "devDependencies": {
+    "@types/minio": "^7.0.10"
   }
 }

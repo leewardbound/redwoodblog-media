@@ -1,4 +1,11 @@
-import { files, file, createFile, updateFile, deleteFile } from './files'
+import {
+  files,
+  file,
+  createFile,
+  updateFile,
+  deleteFile,
+  getFileUploadURL,
+} from './files'
 import type { StandardScenario } from './files.scenarios'
 
 describe('files', () => {
@@ -14,7 +21,7 @@ describe('files', () => {
     expect(result).toEqual(scenario.file.one)
   })
 
-  scenario('creates a file', async (scenario: StandardScenario) => {
+  scenario('creates a db file', async (scenario: StandardScenario) => {
     mockCurrentUser({ id: scenario.file.one.owner_id })
 
     const result = await createFile({
@@ -23,6 +30,23 @@ describe('files', () => {
 
     expect(result.owner_id).toEqual(scenario.file.one.owner_id)
     expect(result.storage).toEqual('db')
+    expect(result.path).toEqual('test_image.png')
+    expect(result.extension).toEqual('png')
+    expect(result.b64_data).toEqual('IMAGE_DATA')
+  })
+
+  scenario('creates a db file', async (scenario: StandardScenario) => {
+    mockCurrentUser({ id: scenario.file.one.owner_id })
+
+    const result = await createFile({
+      input: {
+        storage: 'play.minio.io',
+        path: 'test_image.png',
+        b64_data: 'IMAGE_DATA',
+      },
+    })
+
+    expect(result.owner_id).toEqual(scenario.file.one.owner_id)
     expect(result.path).toEqual('test_image.png')
     expect(result.extension).toEqual('png')
     expect(result.b64_data).toEqual('IMAGE_DATA')
@@ -45,5 +69,16 @@ describe('files', () => {
     const result = await file({ id: original.id })
 
     expect(result).toEqual(null)
+  })
+
+  scenario('generates a presigned URL', async (scenario: StandardScenario) => {
+    mockCurrentUser({ id: scenario.file.one.owner_id })
+    jest.mock('minio')
+
+    const result = await getFileUploadURL({
+      storage: 'test',
+    })
+
+    expect(result).toContain('https://')
   })
 })
