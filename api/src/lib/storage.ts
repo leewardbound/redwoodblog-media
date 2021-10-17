@@ -17,7 +17,7 @@ export class BucketStorage {
   constructor(
     public readonly bucket: string,
     public readonly options: ClientOptions,
-    public readonly publicURL?: string
+    public readonly publicURL?: string | boolean
   ) {
     this.client = new Client(options)
     this.client.listBuckets((err, buckets) => {
@@ -27,12 +27,22 @@ export class BucketStorage {
         })
       }
     })
+    if (this.publicURL === true)
+      this.publicURL = `https://${this.options.endPoint}/${this.bucket}`
   }
   client: Client
+
+  getPublicFileURL(path: string) {
+    return this.publicURL ? `${this.publicURL}/${path}` : null
+  }
+
+  async getSignedFileURL(path: string, expiry: number = 7 * 86400) {
+    return await this.client.presignedGetObject(this.bucket, path, expiry)
+  }
 }
 
 const STORAGES = {
-  test: new BucketStorage('public-bucket', DEFAULT_STORAGE_PROVIDER),
+  test: new BucketStorage('public-bucket', DEFAULT_STORAGE_PROVIDER, true),
 }
 
 export function getStorage(storage: string): BucketStorage {
@@ -45,11 +55,8 @@ export async function putNamespaced(
   path: string,
   data: string | Buffer | Stream.Readable
 ) {
-  const fullpath = `${namespace}/${path}`
-  const result = await storage.client.putObject(storage.bucket, fullpath, data)
-  const bucketURL = storage.publicURL
-    ? storage.publicURL
-    : `https://${storage.options.endPoint}/${storage.bucket}`
-  const fileURL = `${bucketURL}/${fullpath}`
-  return { ...result, bucketURL, fileURL }
+  const fullPath = `${namespace}/${path}`
+  const result = await storage.client.putObject(storage.bucket, fullPath, data)
+  const fileURL = storage.getPublicFileURL(fullPath)
+  return { ...result, fileURL }
 }

@@ -28,16 +28,17 @@ export const storage = (value: string) => {
 /* special name "root" is always run */
 export const root = async (data: gql.CreateFileInput | gql.UpdateFileInput) => {
   requireAuth()
-  if (data.b64_data && data.path && data.storage !== 'db') {
+  if (data.from_b64_data && data.path && data.storage !== 'db') {
     console.log(
+      'uploaded',
       await putNamespaced(
         getStorage(data.storage),
         context.currentUser.id,
         data.path,
-        Buffer.from(data.b64_data, 'base64url').toString('binary')
+        Buffer.from(data.from_b64_data, 'base64url')
       )
     )
-    delete data.b64_data
+    delete data.from_b64_data
   }
   return { ...data, owner: { connect: context.currentUser } }
 }

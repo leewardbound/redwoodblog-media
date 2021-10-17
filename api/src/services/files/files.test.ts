@@ -26,14 +26,14 @@ describe('files', () => {
     mockCurrentUser({ id: scenario.file.one.owner_id })
 
     const result = await createFile({
-      input: { storage: 'db', path: 'test_image.png', b64_data: 'IMAGE_DATA' },
+      input: { storage: 'db', path: 'test_image.png', title: 'Image One' },
     })
 
     expect(result.owner_id).toEqual(scenario.file.one.owner_id)
     expect(result.storage).toEqual('db')
     expect(result.path).toEqual('test_image.png')
     expect(result.extension).toEqual('png')
-    expect(result.b64_data).toEqual('IMAGE_DATA')
+    expect(result.title).toEqual('Image One')
   })
 
   scenario('updates a file', async (scenario: StandardScenario) => {
@@ -41,10 +41,10 @@ describe('files', () => {
     const original = await file({ id: scenario.file.one.id })
     const result = await updateFile({
       id: original.id,
-      input: { b64_data: 'IMAGE_TWO' },
+      input: { title: 'IMAGE_TWO' },
     })
 
-    expect(result.b64_data).toEqual('IMAGE_TWO')
+    expect(result.title).toEqual('IMAGE_TWO')
   })
 
   scenario('deletes a file', async (scenario: StandardScenario) => {
@@ -71,22 +71,25 @@ describe('files-minio', () => {
     }
   )
 
-  scenario('creates a minio file', async (scenario: StandardScenario) => {
-    mockCurrentUser({ id: scenario.file.one.owner_id })
-    const data = await fs.readFile(__dirname + '/test-ok.png', 'binary')
-    const b64_data = Buffer.from(data, 'binary').toString('base64url')
+  scenario(
+    'creates a minio file from base64 data',
+    async (scenario: StandardScenario) => {
+      mockCurrentUser({ id: scenario.file.one.owner_id })
+      const data = await fs.readFile(__dirname + '/test-ok.png', 'binary')
+      const from_b64_data = Buffer.from(data, 'binary').toString('base64url')
 
-    const result = await createFile({
-      input: {
-        storage: 'test',
-        path: 'test-ok.png',
-        b64_data,
-      },
-    })
+      const result = await createFile({
+        input: {
+          storage: 'test',
+          path: 'test-ok.png',
+          from_b64_data,
+        },
+      })
 
-    expect(result.owner_id).toEqual(scenario.file.one.owner_id)
-    expect(result.path).toEqual('test-ok.png')
-    expect(result.extension).toEqual('png')
-    expect(result.b64_data).toEqual(null)
-  })
+      expect(result.owner_id).toEqual(scenario.file.one.owner_id)
+      expect(result.path).toEqual('test-ok.png')
+      expect(result.extension).toEqual('png')
+      expect(result.publicURL).toEqual(null)
+    }
+  )
 })

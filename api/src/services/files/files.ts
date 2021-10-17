@@ -1,5 +1,6 @@
 import type { Prisma } from '@prisma/client'
 import type { ResolverArgs } from '@redwoodjs/graphql-server'
+import * as gql from 'types/graphql'
 
 import { db } from 'src/lib/db'
 
@@ -19,12 +20,12 @@ export const file = ({ id }: Prisma.FileWhereUniqueInput) => {
 }
 
 interface CreateFileArgs {
-  input: Prisma.FileCreateInput
+  input: gql.CreateFileInput
 }
 
 export const createFile = async ({ input }: CreateFileArgs) => {
   return await db.file.create({
-    data: { ...(await validateCreate<Prisma.FileCreateInput>(rules, input)) },
+    data: { ...(await validateCreate<gql.CreateFileInput>(rules, input)) },
   })
 }
 
@@ -40,7 +41,7 @@ export const updateFile = async ({ id, input }: UpdateFileArgs) => {
     data: {
       ...(await validateUpdate<
         Prisma.FileUpdateInput,
-        Prisma.FileUncheckedUpdateInput
+        Prisma.FileUpdateInput | Prisma.FileUncheckedUpdateInput
       >(rules, input, existing)),
     },
     where: { id },
@@ -68,4 +69,8 @@ export const getFileUploadURL = async ({ storage }: GetFileUploadURLArgs) => {
 export const File = {
   owner: (_obj, { root }: ResolverArgs<ReturnType<typeof file>>) =>
     db.file.findUnique({ where: { id: root.id } }).owner(),
+  publicURL: (_obj, { root }): string | null => {
+    const storage = getStorage(root.storage)
+    return storage?.getPublicFileURL(root.path)
+  },
 }

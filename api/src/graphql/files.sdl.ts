@@ -1,13 +1,17 @@
 export const schema = gql`
   type File {
     id: String!
-    createdAt: DateTime!
+    createdAt: DateTime
     storage: String!
     path: String!
     title: String
-    b64_data: String
     extension: String
-    owner: Author!
+
+    publicAllowed: Boolean
+    publicURL: String
+    publicURLExpires: DateTime
+
+    owner: Author
     owner_id: String!
   }
 
@@ -21,7 +25,8 @@ export const schema = gql`
     storage: String!
     path: String!
     title: String
-    b64_data: String
+    from_url: String
+    from_b64_data: String
     extension: String
   }
 
@@ -29,7 +34,8 @@ export const schema = gql`
     storage: String
     path: String
     title: String
-    b64_data: String
+    from_url: String
+    from_b64_data: String
     extension: String
   }
 

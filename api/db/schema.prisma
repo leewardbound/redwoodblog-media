@@ -33,8 +33,12 @@ model File {
   storage   String
   path      String?
   title     String?
-  b64_data  String?
   extension String?
+
+  publicAllowed    Boolean?
+  publicURL String?
+  publicURLExpires DateTime?
+
   owner     User     @relation(fields: [owner_id], references: [id])
   owner_id  String   @default("")
 }
