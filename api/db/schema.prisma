@@ -1,0 +1,40 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = "native"
+}
+
+model User {
+  id             String @id @default(uuid())
+  email          String @unique
+  createdAt      DateTime @default(now())
+  hashedPassword String?
+  salt           String?
+  posts          Post[]
+  files          File[]
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  title     String
+  body      String
+  owner     User     @relation(fields: [owner_id], references: [id])
+  owner_id  String   @default("")
+}
+
+model File {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  storage   String
+  path      String?
+  title     String?
+  b64_data  String?
+  extension String?
+  owner     User     @relation(fields: [owner_id], references: [id])
+  owner_id  String   @default("")
+}
