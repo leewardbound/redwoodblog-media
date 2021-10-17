@@ -38,7 +38,10 @@ export const updateFile = async ({ id, input }: UpdateFileArgs) => {
   })
   return await db.file.update({
     data: {
-      ...(await validateUpdate<Prisma.FileUpdateInput>(rules, input, existing)),
+      ...(await validateUpdate<
+        Prisma.FileUpdateInput,
+        Prisma.FileUncheckedUpdateInput
+      >(rules, input, existing)),
     },
     where: { id },
   })

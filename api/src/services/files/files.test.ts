@@ -7,6 +7,7 @@ import {
   getFileUploadURL,
 } from './files'
 import type { StandardScenario } from './files.scenarios'
+import { promises as fs } from 'fs'
 
 describe('files', () => {
   scenario('returns all files', async (scenario: StandardScenario) => {
@@ -35,23 +36,6 @@ describe('files', () => {
     expect(result.b64_data).toEqual('IMAGE_DATA')
   })
 
-  scenario('creates a db file', async (scenario: StandardScenario) => {
-    mockCurrentUser({ id: scenario.file.one.owner_id })
-
-    const result = await createFile({
-      input: {
-        storage: 'play.minio.io',
-        path: 'test_image.png',
-        b64_data: 'IMAGE_DATA',
-      },
-    })
-
-    expect(result.owner_id).toEqual(scenario.file.one.owner_id)
-    expect(result.path).toEqual('test_image.png')
-    expect(result.extension).toEqual('png')
-    expect(result.b64_data).toEqual('IMAGE_DATA')
-  })
-
   scenario('updates a file', async (scenario: StandardScenario) => {
     mockCurrentUser({ id: scenario.file.one.owner_id })
     const original = await file({ id: scenario.file.one.id })
@@ -70,15 +54,39 @@ describe('files', () => {
 
     expect(result).toEqual(null)
   })
+})
 
-  scenario('generates a presigned URL', async (scenario: StandardScenario) => {
+describe('files-minio', () => {
+  scenario(
+    'generates a presigned upload URL',
+    async (scenario: StandardScenario) => {
+      mockCurrentUser({ id: scenario.file.one.owner_id })
+      jest.mock('minio')
+
+      const result = await getFileUploadURL({
+        storage: 'test',
+      })
+
+      expect(result).toContain('https://')
+    }
+  )
+
+  scenario('creates a minio file', async (scenario: StandardScenario) => {
     mockCurrentUser({ id: scenario.file.one.owner_id })
-    jest.mock('minio')
+    const data = await fs.readFile(__dirname + '/test-ok.png', 'binary')
+    const b64_data = Buffer.from(data, 'binary').toString('base64url')
 
-    const result = await getFileUploadURL({
-      storage: 'test',
+    const result = await createFile({
+      input: {
+        storage: 'test',
+        path: 'test-ok.png',
+        b64_data,
+      },
     })
 
-    expect(result).toContain('https://')
+    expect(result.owner_id).toEqual(scenario.file.one.owner_id)
+    expect(result.path).toEqual('test-ok.png')
+    expect(result.extension).toEqual('png')
+    expect(result.b64_data).toEqual(null)
   })
 })

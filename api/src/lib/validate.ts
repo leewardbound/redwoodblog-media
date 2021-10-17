@@ -31,10 +31,10 @@ export async function validateCreate<InputType>(
   }
   return data
 }
-export async function validateUpdate<InputType>(
+export async function validateUpdate<InputType, ExistingType>(
   rulesModule: ValidatorRulesModule,
   data: InputType,
-  existing: { [key: string]: any }
+  existing: ExistingType
 ): Promise<InputType> {
   data = await validateFields<InputType>(rulesModule, data)
 

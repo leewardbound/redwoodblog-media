@@ -1,7 +1,7 @@
 import * as gql from 'types/graphql'
 import { requireAuth } from 'api/src/lib/auth'
 import { ValidationError } from '@redwoodjs/graphql-server'
-import { getStorage } from 'src/lib/storage'
+import { getStorage, putNamespaced } from 'src/lib/storage'
 
 const STORAGE_OPTIONS = ['db', 'play.minio.io']
 
@@ -29,7 +29,15 @@ export const storage = (value: string) => {
 export const root = async (data: gql.CreateFileInput | gql.UpdateFileInput) => {
   requireAuth()
   if (data.b64_data && data.path && data.storage !== 'db') {
-    //const client = getStorage(data.storage)
+    console.log(
+      await putNamespaced(
+        getStorage(data.storage),
+        context.currentUser.id,
+        data.path,
+        Buffer.from(data.b64_data, 'base64url').toString('binary')
+      )
+    )
+    delete data.b64_data
   }
   return { ...data, owner: { connect: context.currentUser } }
 }
