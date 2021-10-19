@@ -41,4 +41,6 @@ model File {
 
   owner     User     @relation(fields: [owner_id], references: [id])
   owner_id  String   @default("")
+
+  @@unique([storage, path], name: "unique_file")
 }

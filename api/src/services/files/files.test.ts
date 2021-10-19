@@ -97,7 +97,7 @@ maybe(
         expect(result.owner_id).toEqual(scenario.file.one.owner_id)
         expect(result.path).toEqual(`${result.owner_id}/test-ok.png`)
         expect(result.extension).toEqual('png')
-        const publicBase = getStorage(result.storage).publicURL
+        const publicBase = getStorage(result.storage).publicURLBase
         if (publicBase)
           expect(result.publicURL.startsWith(publicBase)).toEqual(true)
         else expect(result.publicURL).toEqual(null)
@@ -119,7 +119,7 @@ maybe(
         expect(result.owner_id).toEqual(scenario.file.one.owner_id)
         expect(result.path).toEqual(`${result.owner_id}/test-150.png`)
         expect(result.extension).toEqual('png')
-        const publicBase = getStorage(result.storage).publicURL
+        const publicBase = getStorage(result.storage).publicURLBase
         if (publicBase)
           expect(result.publicURL.startsWith(publicBase)).toEqual(true)
         else expect(result.publicURL).toEqual(null)

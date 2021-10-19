@@ -5,6 +5,7 @@ import { requireAuth } from 'src/lib/auth'
 import * as Stream from 'stream'
 import fetch from 'node-fetch'
 import { Prisma } from '@prisma/client'
+import { db } from 'src/lib/db'
 
 const STORAGE_OPTIONS = ['test']
 
@@ -50,29 +51,47 @@ export const root = async (
     let uploadData: Buffer | Stream.Readable | string
 
     if (data.from_b64_data) {
-      uploadData = Buffer.from(data.from_b64_data, 'base64url')
-      delete data.from_b64_data
+      const b64data = data.from_b64_data.replace(
+        /^data:(\w+)\/(\w+);base64,/,
+        ''
+      )
+      uploadData = Buffer.from(b64data, 'base64')
     }
 
     if (data.from_url) {
       uploadData = await (await fetch(data.from_url)).buffer()
-      delete data.from_url
     }
 
     if (uploadData) {
-      const driver = getStorage(storage)
-      await driver.client.putObject(driver.bucket, data.path, uploadData)
-      if (driver.publicURL) publicURL = driver.getPublicFileURL(data.path)
+      const { bucket, client, publicURLBase, getPublicFileURL } =
+        getStorage(storage)
+      await client.putObject(bucket, data.path, uploadData)
+      if (publicURLBase) publicURL = getPublicFileURL(data.path)
     }
   }
+
+  delete data.from_b64_data
+  delete data.from_url
+
   return { ...data, storage, publicURL, owner_id: context.currentUser.id }
 }
 
 /* special names "create" and "update" are only run during create/update */
-export const create = (data: gql.CreateFileInput) => {
+export const create = async (data: gql.CreateFileInput) => {
   if (!data.extension && findExtension(data))
     data.extension = findExtension(data)
 
+  if (
+    await db.file.findFirst({
+      where: {
+        storage: data.storage,
+        path: data.path,
+      },
+    })
+  )
+    throw new ValidationError(
+      `path must be unique for each storage provider: ${data.storage}/${data.path}`
+    )
   return data
 }
 

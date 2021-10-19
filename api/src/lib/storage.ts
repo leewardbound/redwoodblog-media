@@ -16,23 +16,23 @@ export class BucketStorage {
   constructor(
     public readonly bucket: string,
     public readonly options: ClientOptions,
-    public readonly publicURL?: string
+    public readonly publicURLBase?: string
   ) {
     this.client = new Client(options)
     this.client.listBuckets((err, buckets) => {
       if (buckets && !buckets.some((b) => b.name === bucket)) {
         this.client.makeBucket(bucket, options.region || '').then(() => {
-          if (publicURL) this.client.setBucketPolicy(bucket, 'public')
+          if (publicURLBase) this.client.setBucketPolicy(bucket, 'public')
         })
       }
     })
-    if (this.publicURL === 'auto')
-      this.publicURL = `https://${this.options.endPoint}/${this.bucket}`
+    if (this.publicURLBase === 'auto')
+      this.publicURLBase = `https://${this.options.endPoint}/${this.bucket}`
   }
   client: Client
 
   getPublicFileURL(path: string) {
-    return this.publicURL ? `${this.publicURL}/${path}` : null
+    return this.publicURLBase ? `${this.publicURLBase}/${path}` : null
   }
 
   async getSignedFileURL(path: string, expiry: number = 7 * 86400) {
