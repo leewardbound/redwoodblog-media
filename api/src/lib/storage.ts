@@ -42,7 +42,10 @@ export class BucketStorage {
 
 const STORAGES = {
   test: new BucketStorage('public-bucket', DEFAULT_STORAGE_PROVIDER),
+  default: new BucketStorage('public-bucket', DEFAULT_STORAGE_PROVIDER),
 }
+
+export const STORAGE_OPTIONS = Object.keys(STORAGES)
 
 export function getStorage(storage: string): BucketStorage {
   return STORAGES[storage]

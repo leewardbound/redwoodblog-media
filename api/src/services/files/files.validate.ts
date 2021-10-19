@@ -1,13 +1,11 @@
 import * as gql from 'types/graphql'
 import { ValidationError } from '@redwoodjs/graphql-server'
-import { getStorage } from 'src/lib/storage'
+import { getStorage, STORAGE_OPTIONS } from 'src/lib/storage'
 import { requireAuth } from 'src/lib/auth'
 import * as Stream from 'stream'
 import fetch from 'node-fetch'
 import { Prisma } from '@prisma/client'
 import { db } from 'src/lib/db'
-
-const STORAGE_OPTIONS = ['test']
 
 /* Helper utility */
 function findExtension(data: gql.CreateFileInput | gql.UpdateFileInput) {
@@ -67,11 +65,18 @@ export const root = async (
         getStorage(storage)
       await client.putObject(bucket, data.path, uploadData)
       if (publicURLBase) publicURL = getPublicFileURL(data.path)
+    } else if (data.from_upload) {
+      const { bucket, client, publicURLBase, getPublicFileURL } =
+        getStorage(storage)
+      await client.copyObject(bucket, data.from_upload, data.path, null)
+      await client.removeObject(bucket, data.from_upload)
+      if (publicURLBase) publicURL = getPublicFileURL(data.path)
     }
   }
 
   delete data.from_b64_data
   delete data.from_url
+  delete data.from_upload
 
   return { ...data, storage, publicURL, owner_id: context.currentUser.id }
 }

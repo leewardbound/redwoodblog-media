@@ -16,12 +16,19 @@ export const filterCurrentUser = () => {
 }
 
 export const files = () => {
-  return db.file.findMany()
+  return db.file.findMany({
+    where: {
+      owner_id: context.currentUser.id,
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  })
 }
 
 export const file = ({ id }: Prisma.FileWhereUniqueInput) => {
-  return db.file.findUnique({
-    where: { id },
+  return db.file.findFirst({
+    where: { id, owner_id: context.currentUser.id },
   })
 }
 
@@ -80,8 +87,11 @@ export const getFileUploadURL = async ({ storage }: GetFileUploadURLArgs) => {
   const uploads = getStorage(storage)
   if (!uploads) throw new ValidationError(`No such destination: ${storage}`)
 
-  const tempName = `.uploads/${new Date().toISOString()}`
-  return await uploads.client.presignedPutObject(uploads.bucket, tempName)
+  const name = `.uploads/${new Date().toISOString()}.in_progress`
+  return {
+    url: await uploads.client.presignedPutObject(uploads.bucket, name),
+    name,
+  }
 }
 
 export const File = {

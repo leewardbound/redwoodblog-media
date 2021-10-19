@@ -18,7 +18,6 @@ export const schema = gql`
   type Query {
     files: [File!]! @requireAuth
     file(id: String!): File @requireAuth
-    getFileUploadURL(storage: String!): String @requireAuth
   }
 
   input CreateFileInput {
@@ -27,6 +26,7 @@ export const schema = gql`
     title: String
     from_url: String
     from_b64_data: String
+    from_upload: String
     extension: String
   }
 
@@ -35,12 +35,19 @@ export const schema = gql`
     title: String
     from_url: String
     from_b64_data: String
+    from_upload: String
     extension: String
+  }
+
+  type UploadURL {
+    url: String!
+    name: String!
   }
 
   type Mutation {
     createFile(input: CreateFileInput!): File! @requireAuth
     updateFile(id: String!, input: UpdateFileInput!): File! @requireAuth
     deleteFile(id: String!): File! @requireAuth
+    getFileUploadURL(storage: String!): UploadURL @requireAuth
   }
 `
