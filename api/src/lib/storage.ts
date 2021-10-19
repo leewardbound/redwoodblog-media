@@ -4,13 +4,21 @@ const port = process.env.REDWOOD_MINIO_PORT
   ? { port: parseInt(process.env.REDWOOD_MINIO_PORT) }
   : null
 
-export const DEFAULT_STORAGE_PROVIDER: ClientOptions = {
-  endPoint: process.env.REDWOOD_MINIO_HOST,
-  accessKey: process.env.REDWOOD_MINIO_ACCESS,
-  secretKey: process.env.REDWOOD_MINIO_SECRET,
-  useSSL: true,
-  ...port,
-}
+export const HAS_DEFAULT_STORAGE = Boolean(
+  process.env.REDWOOD_MINIO_ACCESS_KEY &&
+    process.env.REDWOOD_MINIO_SECRET_KEY &&
+    process.env.REDWOOD_MINIO_HOST
+)
+
+export const DEFAULT_STORAGE_PROVIDER: ClientOptions = HAS_DEFAULT_STORAGE
+  ? {
+      endPoint: process.env.REDWOOD_MINIO_HOST,
+      accessKey: process.env.REDWOOD_MINIO_ACCESS_KEY,
+      secretKey: process.env.REDWOOD_MINIO_SECRET_KEY,
+      useSSL: process.env.REDWOOD_MINIO_SSL === 'true',
+      ...port,
+    }
+  : undefined
 
 export class BucketStorage {
   constructor(
@@ -40,10 +48,15 @@ export class BucketStorage {
   }
 }
 
-const STORAGES = {
-  test: new BucketStorage('public-bucket', DEFAULT_STORAGE_PROVIDER),
-  default: new BucketStorage('public-bucket', DEFAULT_STORAGE_PROVIDER),
-}
+const STORAGES = HAS_DEFAULT_STORAGE
+  ? {
+      test: new BucketStorage('redwoodblog-test', DEFAULT_STORAGE_PROVIDER),
+      default: new BucketStorage(
+        'redwoodblog-public',
+        DEFAULT_STORAGE_PROVIDER
+      ),
+    }
+  : {}
 
 export const STORAGE_OPTIONS = Object.keys(STORAGES)
 

@@ -6,6 +6,7 @@ import * as Stream from 'stream'
 import fetch from 'node-fetch'
 import { Prisma } from '@prisma/client'
 import { db } from 'src/lib/db'
+import { CopyConditions } from 'minio'
 
 /* Helper utility */
 function findExtension(data: gql.CreateFileInput | gql.UpdateFileInput) {
@@ -68,7 +69,14 @@ export const root = async (
     } else if (data.from_upload) {
       const { bucket, client, publicURLBase, getPublicFileURL } =
         getStorage(storage)
-      await client.copyObject(bucket, data.from_upload, data.path, null)
+
+      const conds = new CopyConditions()
+      await client.copyObject(
+        bucket,
+        data.path,
+        `${bucket}/${data.from_upload}`,
+        conds
+      )
       await client.removeObject(bucket, data.from_upload)
       if (publicURLBase) publicURL = getPublicFileURL(data.path)
     }
@@ -120,8 +128,8 @@ export const update = async (
         )
         await storage.client.copyObject(
           storage.bucket,
-          existing.path as string,
           data.path,
+          `${storage.bucket}/${existing.path}`,
           null
         )
         await storage.client.removeObject(

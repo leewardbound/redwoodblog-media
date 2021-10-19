@@ -1,0 +1,54 @@
+version: "2.1"
+services:
+  api:
+    extends:
+      service: redwoodblog-redwood-dev
+      file: docker/compose-services.yml
+    volumes:
+      - "./:/app"
+    command: "yarn rw dev api"
+    ports: ["8911:8911"]
+    env_file: .env
+    links:
+      - minio
+      - psql
+
+  web:
+    extends:
+      service: redwoodblog-redwood-dev
+      file: docker/compose-services.yml
+    volumes:
+      - "./:/app"
+    command: "yarn rw dev web"
+    ports: ["8910:8910"]
+    env_file: .env
+
+  proxy:
+    extends:
+      service: redwoodblog-redwood-proxy
+      file: docker/compose-services.yml
+    ports: ["9101:80"]
+    links:
+      - api
+      - web
+
+  minio:
+    image: bitnami/minio:latest
+    ports: ["9000:9000", "9001:9001"]
+    environment:
+      - MINIO_SERVER_HOST=localhost
+      - MINIO_ACCESS_KEY=minio-access-key
+      - MINIO_SECRET_KEY=minio-secret-key
+      - MINIO_DEFAULT_BUCKETS=redwoodblog-public:public,redwoodblog-private,redwoodblog-test
+
+  psql:
+    image: sameersbn/postgresql:9.6-2
+    expose:
+      - '5432'
+
+    environment:
+      DB_NAME: ${COMPOSE_PROJECT}
+      DB_PASS: ${COMPOSE_PROJECT}
+      DB_USER: ${COMPOSE_PROJECT}
+    volumes:
+      - /data/${COMPOSE_PROJECT}/postgresql:/var/lib/postgresql

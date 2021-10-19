@@ -1,0 +1,10 @@
+version: "2.1"
+services:
+  redwoodblog-redwood-dev:
+    build:
+      context: ..
+      dockerfile: docker/dev.Dockerfile
+  redwoodblog-redwood-proxy:
+    build:
+      context: ..
+      dockerfile: docker/dev-proxy.Dockerfile
