@@ -21,7 +21,7 @@ interface CreatePostArgs {
 export const createPost = ({ input }: CreatePostArgs) => {
   requireAuth()
   return db.post.create({
-    data: { ...input, owner: { connect: context.currentUser } },
+    data: { ...input, owner: { connect: { id: context.currentUser.id } } },
   })
 }
 

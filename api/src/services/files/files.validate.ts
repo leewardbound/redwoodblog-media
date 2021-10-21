@@ -8,6 +8,7 @@ import { Prisma } from '@prisma/client'
 import { db } from 'src/lib/db'
 import { CopyConditions } from 'minio'
 import { refreshAccessURL } from 'src/services/files/files'
+import { v4 as uuid } from 'uuid'
 
 /* Helper utility */
 function findExtension(data: gql.CreateFileInput | gql.UpdateFileInput) {
@@ -31,6 +32,7 @@ export const storage = (value: string) => {
 
 export const path = (value: string) => {
   const userNamespace = `${context.currentUser.id}/`
+  if (!value) value = uuid()
   if (!value.startsWith(userNamespace)) return `${userNamespace}${value}`
   return value
 }

@@ -14,6 +14,7 @@ model User {
   createdAt      DateTime @default(now())
   hashedPassword String?
   salt           String?
+  roles          String[]
   posts          Post[]
   files          File[]
 }

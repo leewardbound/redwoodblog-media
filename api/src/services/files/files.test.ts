@@ -9,22 +9,25 @@ import {
 import type { StandardScenario } from './files.scenarios'
 import { promises as fs } from 'fs'
 import { getStorage } from 'src/lib/storage'
+import { mockUserID } from 'src/lib/test_helpers'
 
 describe('files', () => {
   scenario('returns all files', async (scenario: StandardScenario) => {
-    const result = await files()
+    mockUserID(scenario.file.one.owner_id)
+    const myResult = await files()
 
-    expect(result.length).toEqual(Object.keys(scenario.file).length)
+    expect(myResult.length).toEqual(1)
   })
 
   scenario('returns a single file', async (scenario: StandardScenario) => {
+    mockUserID(scenario.file.one.owner_id)
     const result = await file({ id: scenario.file.one.id })
 
     expect(result).toEqual(scenario.file.one)
   })
 
   scenario('creates a db file', async (scenario: StandardScenario) => {
-    mockCurrentUser({ id: scenario.file.one.owner_id })
+    mockUserID(scenario.file.one.owner_id)
 
     const result = await createFile({
       input: { storage: 'db', path: 'test_image.png', title: 'Image One' },
@@ -38,7 +41,7 @@ describe('files', () => {
   })
 
   scenario('updates a file', async (scenario: StandardScenario) => {
-    mockCurrentUser({ id: scenario.file.one.owner_id })
+    mockUserID(scenario.file.one.owner_id)
     const original = await file({ id: scenario.file.one.id })
     const result = await updateFile({
       id: original.id,
@@ -51,7 +54,7 @@ describe('files', () => {
   })
 
   scenario('deletes a file', async (scenario: StandardScenario) => {
-    mockCurrentUser({ id: scenario.file.one.owner_id })
+    mockUserID(scenario.file.one.owner_id)
     const original = await deleteFile({ id: scenario.file.one.id })
     const result = await file({ id: original.id })
 
@@ -61,14 +64,15 @@ describe('files', () => {
 
 const maybe = (predicate: () => boolean, name: string, fn: () => void) =>
   predicate() ? describe(name, fn) : describe.skip(name, fn)
+
 maybe(
-  () => Boolean(process.env.TEST_MINIO),
+  () => Boolean(process.env.TEST_MINIO === 'true'),
   'files-minio',
   () => {
     scenario(
       'generates a presigned upload URL',
       async (scenario: StandardScenario) => {
-        mockCurrentUser({ id: scenario.file.one.owner_id })
+        mockUserID(scenario.file.one.owner_id)
         jest.mock('minio')
 
         const result = await getFileUploadURL({
@@ -82,7 +86,7 @@ maybe(
     scenario(
       'creates a minio file from base64 data',
       async (scenario: StandardScenario) => {
-        mockCurrentUser({ id: scenario.file.one.owner_id })
+        mockUserID(scenario.file.one.owner_id)
         const data = await fs.readFile(__dirname + '/test-ok.png', 'binary')
         const from_b64_data = Buffer.from(data, 'binary').toString('base64url')
 
@@ -106,7 +110,7 @@ maybe(
     scenario(
       'creates a minio file from http url',
       async (scenario: StandardScenario) => {
-        mockCurrentUser({ id: scenario.file.one.owner_id })
+        mockUserID(scenario.file.one.owner_id)
 
         const result = await createFile({
           input: {
@@ -129,7 +133,7 @@ maybe(
     scenario(
       'moves a minio file when path changes',
       async (scenario: StandardScenario) => {
-        mockCurrentUser({ id: scenario.file.one.owner_id })
+        mockUserID(scenario.file.one.owner_id)
 
         const created = await createFile({
           input: {

@@ -44,8 +44,8 @@ services:
 
   psql:
     image: sameersbn/postgresql:9.6-2
-    expose:
-      - '5432'
+    ports: ['5432:5432']
+    #expose: ['5432']
 
     environment:
       DB_NAME: ${COMPOSE_PROJECT}

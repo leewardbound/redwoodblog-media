@@ -18,7 +18,7 @@ export const filterCurrentUser = () => {
 export const files = () => {
   return db.file.findMany({
     where: {
-      owner_id: context.currentUser.id,
+      owner_id: context.currentUser?.id,
     },
     orderBy: {
       createdAt: 'desc',

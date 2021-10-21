@@ -1,5 +1,6 @@
-import { posts, post, createPost, updatePost, deletePost } from './posts'
+import { createPost, deletePost, post, posts, updatePost } from './posts'
 import type { StandardScenario } from './posts.scenarios'
+import { mockUserID } from 'src/lib/test_helpers'
 
 describe('posts', () => {
   scenario('returns all posts', async (scenario: StandardScenario) => {
@@ -15,8 +16,7 @@ describe('posts', () => {
   })
 
   scenario('creates a post', async (scenario: StandardScenario) => {
-    mockCurrentUser({ id: scenario.post.one.owner_id })
-
+    mockUserID(scenario.post.one.owner_id)
     const result = await createPost({
       input: { title: 'String', body: 'String' },
     })
@@ -27,7 +27,7 @@ describe('posts', () => {
   })
 
   scenario('updates a post', async (scenario: StandardScenario) => {
-    mockCurrentUser({ id: scenario.post.one.owner_id })
+    mockUserID(scenario.post.one.owner_id)
 
     const original = await post({ id: scenario.post.one.id })
     const result = await updatePost({
@@ -39,7 +39,7 @@ describe('posts', () => {
   })
 
   scenario('deletes a post', async (scenario: StandardScenario) => {
-    mockCurrentUser({ id: scenario.post.one.owner_id })
+    mockUserID(scenario.post.one.owner_id)
 
     const original = await deletePost({ id: scenario.post.one.id })
     const result = await post({ id: original.id })
