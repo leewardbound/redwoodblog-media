@@ -9,7 +9,8 @@ export const schema = gql`
 
     publicAllowed: Boolean
     publicURL: String
-    publicURLExpires: DateTime
+    signedAccessURL: String
+    signedAccessURLExpires: DateTime
 
     owner: Author
     owner_id: String!

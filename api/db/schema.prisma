@@ -37,7 +37,8 @@ model File {
 
   publicAllowed    Boolean?
   publicURL String?
-  publicURLExpires DateTime?
+  signedAccessURL String?
+  signedAccessURLExpires DateTime?
 
   owner     User     @relation(fields: [owner_id], references: [id])
   owner_id  String   @default("")

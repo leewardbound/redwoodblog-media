@@ -7,6 +7,7 @@ import fetch from 'node-fetch'
 import { Prisma } from '@prisma/client'
 import { db } from 'src/lib/db'
 import { CopyConditions } from 'minio'
+import { refreshAccessURL } from 'src/services/files/files'
 
 /* Helper utility */
 function findExtension(data: gql.CreateFileInput | gql.UpdateFileInput) {
@@ -67,8 +68,7 @@ export const root = async (
       await client.putObject(bucket, data.path, uploadData)
       if (publicURLBase) publicURL = getPublicFileURL(data.path)
     } else if (data.from_upload) {
-      const { bucket, client, publicURLBase, getPublicFileURL } =
-        getStorage(storage)
+      const { bucket, client, ...minio } = getStorage(storage)
 
       const conds = new CopyConditions()
       await client.copyObject(
@@ -78,7 +78,7 @@ export const root = async (
         conds
       )
       await client.removeObject(bucket, data.from_upload)
-      if (publicURLBase) publicURL = getPublicFileURL(data.path)
+      if (minio.publicURLBase) publicURL = `${minio.publicURLBase}/${data.path}`
     }
   }
 
@@ -115,6 +115,7 @@ export const update = async (
   if (data.path && !data.extension && findExtension(data))
     data.extension = findExtension(data)
 
+  let signedAccessURL: string
   if (existing.path && data.path !== existing.path) {
     const storage = getStorage(existing.storage as string)
     if (storage) {
@@ -136,6 +137,13 @@ export const update = async (
           storage.bucket,
           existing.path as string
         )
+
+        if (existing.signedAccessURLExpires) {
+          signedAccessURL = await refreshAccessURL({
+            ...existing,
+            path: data.path,
+          })
+        }
       } else {
         throw new ValidationError(
           'Path is required for existing files, maybe you wanted to deleteFile?'
@@ -144,5 +152,5 @@ export const update = async (
     }
   }
 
-  return data
+  return { ...data, signedAccessURL }
 }

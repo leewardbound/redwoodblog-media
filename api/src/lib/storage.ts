@@ -24,13 +24,16 @@ export class BucketStorage {
   constructor(
     public readonly bucket: string,
     public readonly options: ClientOptions,
-    public readonly publicURLBase?: string
+    public readonly publicURLBase?: string,
+    public readonly fixedSignedURL?: (string) => string
   ) {
     this.client = new Client(options)
     this.client.listBuckets((err, buckets) => {
       if (buckets && !buckets.some((b) => b.name === bucket)) {
         this.client.makeBucket(bucket, options.region || '').then(() => {
-          if (publicURLBase) this.client.setBucketPolicy(bucket, 'public')
+          if (this.publicURLBase) {
+            Promise.resolve(this.client.setBucketPolicy(bucket, 'public'))
+          }
         })
       }
     })
@@ -39,11 +42,12 @@ export class BucketStorage {
   }
   client: Client
 
-  getPublicFileURL(path: string) {
+  public getPublicFileURL(path: string) {
+    console.log(999, this)
     return this.publicURLBase ? `${this.publicURLBase}/${path}` : null
   }
 
-  async getSignedFileURL(path: string, expiry: number = 7 * 86400) {
+  public async getSignedFileURL(path: string, expiry: number = 7 * 86400) {
     return await this.client.presignedGetObject(this.bucket, path, expiry)
   }
 }
@@ -53,7 +57,8 @@ const STORAGES = HAS_DEFAULT_STORAGE
       test: new BucketStorage('redwoodblog-test', DEFAULT_STORAGE_PROVIDER),
       default: new BucketStorage(
         'redwoodblog-public',
-        DEFAULT_STORAGE_PROVIDER
+        DEFAULT_STORAGE_PROVIDER,
+        'http://localhost:8910/redwoodblog-public'
       ),
     }
   : {}

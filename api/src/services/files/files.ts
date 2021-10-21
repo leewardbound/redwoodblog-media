@@ -1,13 +1,13 @@
 import type { Prisma } from '@prisma/client'
 import type { ResolverArgs } from '@redwoodjs/graphql-server'
+import { ValidationError } from '@redwoodjs/graphql-server'
 import * as gql from 'types/graphql'
 
 import { db } from 'src/lib/db'
 
 import * as rules from './files.validate'
-import { validateUpdate, validateCreate } from 'src/lib/validate'
+import { validateCreate, validateUpdate } from 'src/lib/validate'
 import { getStorage } from 'src/lib/storage'
-import { ValidationError } from '@redwoodjs/graphql-server'
 import { requireAuth } from 'src/lib/auth'
 
 export const filterCurrentUser = () => {
@@ -38,7 +38,7 @@ interface CreateFileArgs {
 
 export const createFile = async ({ input }: CreateFileArgs) => {
   return await db.file.create({
-    data: { ...(await validateCreate<gql.CreateFileInput>(rules, input)) },
+    data: await validateCreate<gql.CreateFileInput>(rules, input),
   })
 }
 
@@ -50,13 +50,14 @@ export const updateFile = async ({ id, input }: UpdateFileArgs) => {
   const existing = await db.file.findFirst({
     where: { id, owner_id: context.currentUser.id },
   })
+
+  const data = await validateUpdate<
+    gql.UpdateFileInput,
+    Prisma.FileUpdateInput | Prisma.FileUncheckedUpdateInput
+  >(rules, input, existing)
+
   return await db.file.update({
-    data: {
-      ...(await validateUpdate<
-        gql.UpdateFileInput,
-        Prisma.FileUpdateInput | Prisma.FileUncheckedUpdateInput
-      >(rules, input, existing)),
-    },
+    data,
     where: { id },
   })
 }
@@ -94,33 +95,43 @@ export const getFileUploadURL = async ({ storage }: GetFileUploadURLArgs) => {
   }
 }
 
+const signedURLExpiry = 86400 * 3
+
+export const refreshAccessURL = async (fileObj) => {
+  const storage = getStorage(fileObj.storage)
+  const signedAccessURL = await storage.getSignedFileURL(fileObj.path)
+  const signedAccessURLExpires = new Date(
+    new Date().getTime() + signedURLExpiry * 1000
+  )
+  await db.file.update({
+    data: { signedAccessURL, signedAccessURLExpires },
+    where: { id: fileObj.id },
+  })
+  return signedAccessURL
+}
+
 export const File = {
   owner: (_obj, { root }: ResolverArgs<ReturnType<typeof file>>) =>
     db.file.findUnique({ where: { id: root.id } }).owner(),
   publicURL: async (_obj, { root }: ResolverArgs<ReturnType<typeof file>>) => {
     let seconds_until_expiry = 0
     let expired = false
-    const expiryWindow = 86400 * 3
-    if (root.publicURLExpires) {
+
+    if (root.publicURL) return root.publicURL
+
+    if (root.signedAccessURLExpires) {
       const start = new Date()
-      const end = root.publicURLExpires
+      const end = root.signedAccessURLExpires
       seconds_until_expiry = (end.getTime() - start.getTime()) / 1000
-      expired = seconds_until_expiry < expiryWindow / 3
+      expired = seconds_until_expiry < signedURLExpiry / 3
     }
-    if (!root.publicURL || expired) {
-      console.log('Expired URL', expired)
-      const storage = getStorage(root.storage)
-      root.publicURL = await storage.getSignedFileURL(root.path)
-      const validUntil = new Date(new Date().getTime() + expiryWindow * 1000)
-      await db.file.update({
-        data: { publicURL: root.publicURL, publicURLExpires: validUntil },
-        where: { id: root.id },
-      })
-      console.log('Refreshed URL for', root.path, validUntil)
+
+    if (!root.signedAccessURL || expired) {
+      return await refreshAccessURL(root)
     } else {
-      if (root.publicURLExpires) console.log('Valid for', seconds_until_expiry)
-      else console.log('Public URL')
+      if (root.signedAccessURLExpires)
+        console.debug('Valid for', seconds_until_expiry)
     }
-    return root.publicURL
+    return root.signedAccessURL
   },
 }

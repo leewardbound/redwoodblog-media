@@ -2,7 +2,7 @@ version: "2.1"
 services:
   api:
     extends:
-      service: redwoodblog-redwood-dev
+      service: redwoodblog-dev
       file: docker/compose-services.yml
     volumes:
       - "./:/app"
@@ -15,19 +15,18 @@ services:
 
   web:
     extends:
-      service: redwoodblog-redwood-dev
+      service: redwoodblog-dev
       file: docker/compose-services.yml
     volumes:
       - "./:/app"
     command: "yarn rw dev web"
-    ports: ["8910:8910"]
     env_file: .env
 
   proxy:
     extends:
-      service: redwoodblog-redwood-proxy
+      service: redwoodblog-devproxy
       file: docker/compose-services.yml
-    ports: ["9101:80"]
+    ports: ["8910:80"]
     links:
       - api
       - web
@@ -35,6 +34,8 @@ services:
   minio:
     image: bitnami/minio:latest
     ports: ["9000:9000", "9001:9001"]
+    volumes:
+      - /data/${COMPOSE_PROJECT}/minio:/data
     environment:
       - MINIO_SERVER_HOST=localhost
       - MINIO_ACCESS_KEY=minio-access-key

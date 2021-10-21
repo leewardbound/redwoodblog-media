@@ -84,7 +84,11 @@ const FilesList = ({ files }) => {
               <td>{truncate(file.title)}</td>
               <td>{truncate(file.owner_id)}</td>
               <td>
-                <img src={file.publicURL} />
+                <img
+                  src={file.publicURL}
+                  style={{ maxHeight: 150 }}
+                  alt={file.title || 'user media upload file without title'}
+                />
                 <br />
                 <a href={file.publicURL}>{truncate(file.publicURL)}</a>
               </td>
