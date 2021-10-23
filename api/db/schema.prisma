@@ -15,17 +15,43 @@ model User {
   hashedPassword String?
   salt           String?
   roles          String[]
+  streams        ActivityStream[]
   posts          Post[]
   files          File[]
+  streamposts    StreamPost[]
+}
+
+model ActivityStream {
+  id             String @id @default(uuid())
+  createdAt      DateTime @default(now())
+  title          String
+  owner          User     @relation(fields: [owner_id], references: [id])
+  owner_id       String
+  streamposts    StreamPost[]
 }
 
 model Post {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  title     String
-  body      String
-  owner     User     @relation(fields: [owner_id], references: [id])
-  owner_id  String   @default("")
+  id             String @id @default(uuid())
+  createdAt      DateTime @default(now())
+  title          String
+  body           String
+  owner          User     @relation(fields: [owner_id], references: [id])
+  owner_id       String
+  streamposts    StreamPost[]
+}
+
+model StreamPost {
+  id             String @id @default(uuid())
+  createdAt      DateTime @default(now())
+
+  poster         User     @relation(fields: [poster_id], references: [id])
+  poster_id      String
+
+  stream         ActivityStream @relation(fields: [stream_id], references: [id])
+  stream_id      String
+
+  post           Post @relation(fields: [post_id], references: [id])
+  post_id        String
 }
 
 model File {
@@ -37,8 +63,8 @@ model File {
   extension String?
 
   publicAllowed    Boolean?
-  publicURL String?
-  signedAccessURL String?
+  publicURL        String?
+  signedAccessURL  String?
   signedAccessURLExpires DateTime?
 
   owner     User     @relation(fields: [owner_id], references: [id])

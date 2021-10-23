@@ -26,7 +26,7 @@ COPY redwood.toml .
 COPY yarn.lock .
 
 # Install dependencies
-RUN yarn install --dev
+RUN yarn install
 
 # Set api as workdirectory
 WORKDIR /app
