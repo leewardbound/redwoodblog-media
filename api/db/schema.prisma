@@ -6,6 +6,7 @@ datasource db {
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = "native"
+  previewFeatures = ["interactiveTransactions"]
 }
 
 model User {
@@ -14,6 +15,8 @@ model User {
   createdAt      DateTime @default(now())
   hashedPassword String?
   salt           String?
+  resetToken          String?
+  resetTokenExpiresAt DateTime?
   roles          String[]
   streams        ActivityStream[]
   posts          Post[]

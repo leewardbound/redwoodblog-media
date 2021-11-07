@@ -2,7 +2,6 @@ import { db } from 'src/lib/db'
 import { DbAuthHandler } from '@redwoodjs/api'
 
 export const handler = async (event, context) => {
-
   const loginOptions = {
     // login.handler() is called after finding the user that matches the
     // username/password provided at login, but before actually considering them
@@ -32,6 +31,34 @@ export const handler = async (event, context) => {
     expires: 60 * 60 * 24 * 365 * 10,
   }
 
+  const forgotPasswordOptions = {
+    handler: (user) => {
+      console.log(
+        'PASSWORD RESET AT:',
+        '/reset-password?resetToken=' + user.resetToken
+      )
+      return user
+    },
+    expires: 60 * 60 * 24,
+    errors: {
+      usernameNotFound: 'Username not found',
+      usernameRequired: 'Username is required',
+    },
+  }
+
+  const resetPasswordOptions = {
+    handler: async (user) => {
+      return user && true
+    },
+    allowReusedPassword: true,
+    errors: {
+      resetTokenExpired: 'resetToken is expired',
+      resetTokenInvalid: 'resetToken is invalid',
+      resetTokenRequired: 'resetToken is required',
+      reusedPassword: 'Must choose a new password',
+    },
+  }
+
   const signupOptions = {
     // Whatever you want to happen to your data on new user signup. Redwood will
     // check for duplicate usernames before calling this handler. At a minimum
@@ -48,7 +75,7 @@ export const handler = async (event, context) => {
     //
     // If this returns anything else, it will be returned by the
     // `signUp()` function in the form of: `{ message: 'String here' }`.
-    handler: ({ username, hashedPassword, salt, userAttributes }) => {
+    handler: ({ username, hashedPassword, salt }) => {
       return db.user.create({
         data: {
           email: username,
@@ -82,8 +109,12 @@ export const handler = async (event, context) => {
       username: 'email',
       hashedPassword: 'hashedPassword',
       salt: 'salt',
+      resetToken: 'resetToken',
+      resetTokenExpiresAt: 'resetTokenExpiresAt',
     },
 
+    forgotPassword: forgotPasswordOptions,
+    resetPassword: resetPasswordOptions,
     login: loginOptions,
     signup: signupOptions,
   })
